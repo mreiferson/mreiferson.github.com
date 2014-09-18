@@ -44,8 +44,8 @@ We implemented this via `nsqlookupd`, a daemon that maintains an ephemeral mappi
 given cluster maintain TCP connections to *N* (typically 2 or 3) `nsqlookupd` and push
 topic/channel metadata over the wire.
 
-Because `nsqlookupd` nodes do not coordinate with their peers the availability characteristics are
-simple to reason about - just run as many as you need to achieve redundancy.
+Because `nsqlookupd` nodes do not coordinate with their peers, the availability characteristics are
+simple to reason about - just run as many as you need to achieve your desired redundancy.
 
 As usual, there are a few tradeoffs in taking this approach.
 
