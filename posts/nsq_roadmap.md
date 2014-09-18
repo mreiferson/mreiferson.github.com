@@ -67,19 +67,19 @@ aggregate, bounding an `nsqd`'s RSS). In practice, because Go is a garbage colle
 `--mem-queue-size` is measured in messages (not bytes), this is a *rough* approximation.
 
 It's important to point out that this feature *wasn't* necessarily designed as a means to provide
-message durability, although it could certainly be configured to accomplish that (for example,
+message durability, although it could certainly be configured to accomplish that (for example, by
 setting `--mem-queue-size=0`).
 
 Additionally, disk persistence is implemented such that each topic/channel is an independent queue.
 This provides a useful property for channels in that distinct consumer groups can degrade without
-affecting others. However, the tradeoff is that an `nsqd` will be persisting the *same* message
-data numerous times when multiple channels on a topic back up, increasing the burden on the
-underlying IO sub-system.
+affecting others. However, the tradeoff is that an `nsqd` may persist multiple copies of the *same*
+message data when more than one channel on a topic backs up. Consequently, this increases the
+burden on the underlying IO subsystem.
 
 Meanwhile, the write performance of persistent storage has steadily improved, in part due to the
 increased availability and adoption of SSD based solutions, and coupled with the fact that the
 write characteristics of a message queue are append-only, it seems reasonable to revisit some of
-the original design decisions.
+these original design decisions.
 
 ### Delivery Guarantees
 
@@ -196,6 +196,10 @@ variables.
 This would preserve consumer semantics, making this change effectively transparent.
 
 ### Replication
+
+The final piece of the puzzle is providing a stronger built-in guarantee around message loss.
+
+
 
 ----
 
