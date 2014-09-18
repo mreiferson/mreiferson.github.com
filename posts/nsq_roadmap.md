@@ -1,8 +1,6 @@
 This document aims to outline what we believe to be the future of NSQ and how we're going to get
 there. It's a living document in that we hope it will inspire conversation and debate, ultimately
-producing a robust and clear path forward.
-
-## Table of contents
+producing a robust and clear path forward.  The outline is pretty straightforward:
 
  1. Where are we now?
   * Discovery
@@ -25,9 +23,9 @@ give talks, and hear about the ways that teams are using NSQ, both with success 
 where they'd like to see improvement.
 
 Additionally, the landscape has changed in the intervening years since we first started working on
-NSQ. The proliferation of interest in Go, and its growing status as the lingua franca of
-distributed systems, has contributed to an incredible explosion of libraries and projects that have
-vastly improved the tool-chest for application developers.
+NSQ. The proliferation of interest in Go, and its natural application as a language for building
+distributed systems, has contributed to an incredible explosion of libraries and projects
+[[1]](#footnote_1) that have vastly improved the tool-chest for application developers.
 
 Given all that, it's important to reflect on the state of things, the set of features and use cases
 that NSQ currently supports, and be able to outline a roadmap for where we want to be. After all,
@@ -44,9 +42,9 @@ NSQ succeeded in opening up the possibilities that exist when elastic streams of
 discovered by independent groups of consumers in realtime.
 
 We implemented this via `nsqlookupd`, a daemon that maintains an ephemeral mapping of topics to
-`nsqd` nodes. We took a pragmatic approach under-the-hood, all `nsqd` participating in a given
-cluster maintain TCP connections to `N` (typically 2 or 3) `nsqlookupd` and push topic/channel
-metadata over the wire.
+`nsqd` nodes. We took a pragmatic approach under-the-hood, all of the `nsqd` participating in a
+given cluster maintain TCP connections to `N` (typically 2 or 3) `nsqlookupd` and push
+topic/channel metadata over the wire.
 
 Because `nsqlookupd` nodes do not coordinate with their peers the availability characteristics are
 simple to reason about - just run as many as you need to achieve redundancy.
@@ -95,8 +93,8 @@ Then how do you *actually* implement a system in which messages are guaranteed t
 despite `N` node failures?
 
 One option is to `PUB` messages to multiple `nsqd` (`N + 1`), effectively making it the producer's
-responsibility to replicate data. The question is, how do you handle the explicit duplication of
-messages?
+responsibility to replicate data. The problem them becomes: how do you handle the *explicit*
+duplication of messages?
 
 Well, you de-dupe of course. [Dave Gardner][dave_gardner] (of Hailo fame) has [written
 about][dg_blog] implementing an efficient (probabilistic) method that takes advantage of "reverse
@@ -110,21 +108,9 @@ certainly isn't trivial.
 It's also important to weigh the fact that both approaches introduce an explicit inefficiency,
 additional operational overhead, and complexity.
 
-### Summary
-
-There are three high level opportunities to improve:
-
- 1. **Discovery** - the challenge and complexity of deploying `nsqlookupd`/`nsqadmin` at scale
-
- 2. **Durability** - the inefficiency of duplicated messages on disk and the ephemeral nature of
-    messages in memory
-
- 3. **Delivery Guarantees** - the difficulty of performing idempotent operations and the
-    operational overhead and inefficiency of explicit duplication
-
 ## Where are we going?
 
-There's always a tension between keeping NSQ's core simple and focussed while still being useful
+There's always a tension between keeping NSQ's core simple and focused while still being useful
 for a wide range of use cases.
 
 It's also naive to think that after 2 years of experience operating NSQ in production, and
@@ -141,6 +127,18 @@ Taking a step back, what are the project's goals?
 
 Simply put, if we're able to identify changes that address the aforementioned deficiencies and are
 not at odds with those goals, then they are changes worthy of consideration.
+
+Above, we outlined three high level opportunities for improvement:
+
+ 1. **Discovery** - the challenge and complexity of deploying `nsqlookupd`/`nsqadmin` at scale
+
+ 2. **Durability** - the inefficiency of duplicated messages on disk and the ephemeral nature of
+    messages in memory
+
+ 3. **Delivery Guarantees** - the difficulty of performing idempotent operations and the
+    operational overhead and inefficiency of explicit duplication
+
+Now let's talk about specific approaches that can get us there...
 
 ### Gossip
 
@@ -199,6 +197,13 @@ This would preserve consumer semantics, making this change effectively transpare
 
 ### Replication
 
+----
+
+1. <a name="footnote_1"></a>[etcd][etcd], [Consul][consul], [Serf][serf], [Terraform][terraform],
+[BoltDB][boltdb], [InfluxDB][influxdb], [Fleet][fleet], [Cayley][cayley],
+[CockroachDB][cockroachdb], [SkyDNS][skydns], [Docker][docker], [Kubernetes][kubernetes],
+[Flynn][flynn], [CoreOS][coreos], etc.
+
 [client_libraries]: http://nsq.io/clients/client_libraries.html
 [dave_gardner]: https://twitter.com/davegardnerisme
 [dg_blog]: http://www.davegardner.me.uk/blog/2012/11/06/stream-de-duplication/
@@ -207,3 +212,16 @@ This would preserve consumer semantics, making this change effectively transpare
 [serf]: http://serfdom.io/
 [hashicorp]: http://hashicorp.com/
 [swim]: http://www.cs.cornell.edu/~asdas/research/dsn02-swim.pdf
+[etcd]: https://github.com/coreos/etcd
+[consul]: https://consul.io/
+[terraform]: https://terraform.io/
+[boltdb]: https://github.com/boltdb/bolt
+[cayley]: https://github.com/google/cayley
+[cockroachdb]: https://github.com/cockroachdb/cockroach
+[skydns]: https://github.com/skynetservices/skydns
+[docker]: https://docker.com/
+[kubernetes]: https://github.com/GoogleCloudPlatform/kubernetes
+[flynn]: https://flynn.io/
+[coreos]: https://coreos.com/
+[influxdb]: http://influxdb.com/
+[fleet]: https://github.com/coreos/fleet
