@@ -144,7 +144,7 @@ Now let's talk about specific approaches that can get us there...
 What if the `nsqd` nodes in a cluster participated in a peer-to-peer network and propagated
 topic/channel metadata to each other over a lightweight and scalable gossip protocol?
 
-Fortunately, the fine folks at [hashicorp][hashicorp] released [Serf][serf], a library implementing
+Fortunately, the fine folks at [Hashicorp][hashicorp] released [Serf][serf], a library implementing
 [SWIM: Scalable Weakly-consistent Infection-style Process Group Membership Protocol][swim].
 
 Gossip accomplishes a few things:
@@ -159,8 +159,8 @@ Gossip accomplishes a few things:
     (for use as a heuristic in distributing `RDY` state).
 
 The implementation is surprisingly straightforward. Despite the eventually consistent nature of
-Serf we can improve propagation and convergence by periodically re-gossiping - and use that as an
-additional form of liveness.
+Serf, we can improve propagation and convergence by periodically re-gossiping the existence of
+topics and channels - and use that as an additional form of "liveness".
 
 The challenge is in maintaining the simplicity of bootstrapping a cluster.
 
