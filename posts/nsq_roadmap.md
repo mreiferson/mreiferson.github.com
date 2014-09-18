@@ -113,9 +113,8 @@ operational overhead, and complexity.
 There's always a tension between NSQ's core remaining simple and focused while also serving a wide
 range of use cases.
 
-It's also naive to think that after 2 years of experience operating NSQ in production, and
-receiving feedback from other users doing the same, we wouldn't be faced with difficult
-choices on how to move forward.
+After 2 years of experience operating NSQ in production (and receiving feedback from other users
+doing the same), it's reasonable to expect difficult choices on which path to move forward.
 
 Taking a step back, what are the project's goals?
 
@@ -136,7 +135,7 @@ Above, we outlined three high level opportunities for improvement:
     messages in memory
 
  3. **Delivery Guarantees** - the difficulty of performing idempotent operations and the
-    operational overhead and inefficiency of explicit duplication
+    inefficiency and operational overhead of explicit duplication
 
 Now let's talk about specific approaches that can get us there...
 
