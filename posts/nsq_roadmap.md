@@ -83,17 +83,17 @@ revisit the original design decisions.
 
 ### Delivery Guarantees
 
-NSQ guarantees that messages are delivered *at least once*. In spirit, it adheres to the philosophy
-outlined in [Life Beyond Distributed Transactions][lbdt] by Pat Helland of Amazon.
+In spirit, NSQ adheres to the philosophy outlined in Pat Helland's [Life Beyond Distributed
+Transactions][lbdt] by guaranteeing that messages are delivered *at least once*.
 
-However, there's an obvious caveat. Since replication is an exercise left to the user, if you only
-`PUB` to a single `nsqd` then a failure of that node would mean messages kept in memory are lost.
+However, it leaves it up to the user to protect against node failure. For example, by relying on a
+single `nsqd` you risk losing messages stored in memory if that node were to fail.
 
-Then how do you *actually* implement a system in which messages are guaranteed to be delivered
-despite *N* node failures?
+So how do you *actually* implement a system in which messages are *guaranteed* to be delivered, at
+least once, despite *N* node failures?
 
 One option is to `PUB` messages to multiple `nsqd` (*N* + 1), effectively making it the producer's
-responsibility to replicate data. The problem them becomes: how do you handle the *explicit*
+responsibility to replicate data. The problem then becomes: how do you handle the *explicit*
 duplication of messages?
 
 Well, you de-dupe of course. [Dave Gardner][dave_gardner] (of Hailo fame) has [written
@@ -197,9 +197,11 @@ This would preserve consumer semantics, making this change effectively transpare
 
 ### Replication
 
-The final piece of the puzzle is to provide a stronger built-in guarantee around message loss.
+The final piece of the puzzle is to provide a stronger built-in guarantee around message delivery
+in the face of node failure.
 
-
+The solution boils down to replicating message data to peers. Unfortunately, this isn't as easy as
+it sounds.
 
 ----
 
