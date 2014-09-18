@@ -114,7 +114,7 @@ There's always a tension between NSQ's core remaining simple and focused while a
 range of use cases.
 
 After 2 years of experience operating NSQ in production (and receiving feedback from other users
-doing the same), it's reasonable to expect difficult choices on which path to move forward.
+doing the same), it's reasonable to expect difficult choices on which path to take going forward.
 
 Taking a step back, what are the project's goals?
 
