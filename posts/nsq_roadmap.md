@@ -54,7 +54,7 @@ tier of services. This means more moving parts, more operational overhead, and t
 opportunity for failure (in general).
 
 The second issue only becomes a factor as you scale to many 100s or 1000s of nodes. It's
-inefficient (and error prone) to rely on direct connections and simple heartbeats as a failure
+inefficient (and error-prone) to rely on direct connections and simple heartbeats as a failure
 detection mechanism at large scale. `nsqadmin` also exhibits related issues, needing to gather
 metadata from all nodes as a cluster scales.
 
@@ -62,11 +62,13 @@ metadata from all nodes as a cluster scales.
 
 NSQ stores messages in memory and transparently persists to disk above a high-water mark.
 
-Primarily, this bounds the memory footprint of a given topic during inevitable backlogs (and thus,
-roughly, an `nsqd` node's overall memory footprint).
+Primarily, this bounds the memory footprint of a given topic/channel during inevitable backlogs (in
+aggregate, bounding an `nsqd`'s RSS). In practice, because Go is a garbage collected language and
+`--mem-queue-size` is measured in messages (not bytes), this is a *rough* approximation.
 
-It *wasn't* necessarily designed as a means to provide message durability, although it could
-certainly be configured to accomplish that (for example, setting `--mem-queue-size=0`).
+It's important to point out that this feature *wasn't* necessarily designed as a means to provide
+message durability, although it could certainly be configured to accomplish that (for example,
+setting `--mem-queue-size=0`).
 
 Additionally, disk persistence is implemented such that each topic/channel is an independent queue.
 This provides a useful property for channels in that distinct consumer groups can degrade without
