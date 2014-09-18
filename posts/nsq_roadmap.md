@@ -41,7 +41,7 @@ discovered by independent groups of consumers in realtime.
 
 We implemented this via `nsqlookupd`, a daemon that maintains an ephemeral mapping of topics to
 `nsqd` nodes. We took a pragmatic approach under-the-hood, all of the `nsqd` participating in a
-given cluster maintain TCP connections to `N` (typically 2 or 3) `nsqlookupd` and push
+given cluster maintain TCP connections to *N* (typically 2 or 3) `nsqlookupd` and push
 topic/channel metadata over the wire.
 
 Because `nsqlookupd` nodes do not coordinate with their peers the availability characteristics are
@@ -88,9 +88,9 @@ However, there's an obvious caveat. Since replication is an exercise left to the
 `PUB` to a single `nsqd` then a failure of that node would mean messages kept in memory are lost.
 
 Then how do you *actually* implement a system in which messages are guaranteed to be delivered
-despite `N` node failures?
+despite *N* node failures?
 
-One option is to `PUB` messages to multiple `nsqd` (`N + 1`), effectively making it the producer's
+One option is to `PUB` messages to multiple `nsqd` (*N* + 1), effectively making it the producer's
 responsibility to replicate data. The problem them becomes: how do you handle the *explicit*
 duplication of messages?
 
