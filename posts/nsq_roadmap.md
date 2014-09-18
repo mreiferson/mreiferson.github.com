@@ -76,10 +76,10 @@ affecting others. However, the tradeoff is that an `nsqd` may persist multiple c
 message data when more than one channel on a topic backs up. Consequently, this increases the
 burden on the underlying IO subsystem.
 
-Meanwhile, the write performance of persistent storage has steadily improved, in part due to the
-increased availability and adoption of SSD based solutions, and coupled with the fact that the
-write characteristics of a message queue are append-only, it seems reasonable to revisit some of
-these original design decisions.
+Meanwhile, the write performance of persistent storage has steadily improved, mostly due to the
+increased availability and adoption of SSD-based solutions. Because of this performance
+improvement, along with the append-only nature of the disk-backed queue, it seems reasonable to
+revisit the original design decisions.
 
 ### Delivery Guarantees
 
@@ -197,7 +197,7 @@ This would preserve consumer semantics, making this change effectively transpare
 
 ### Replication
 
-The final piece of the puzzle is providing a stronger built-in guarantee around message loss.
+The final piece of the puzzle is to provide a stronger built-in guarantee around message loss.
 
 
 
