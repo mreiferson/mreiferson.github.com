@@ -89,14 +89,14 @@ Transactions][lbdt] by guaranteeing that messages are delivered *at least once*.
 However, it leaves it up to the user to protect against node failure. For example, by relying on a
 single `nsqd` you risk losing messages stored in memory if that node were to fail.
 
-So how do you *actually* implement a system in which messages are *guaranteed* to be delivered, at
-least once, despite *N* node failures?
+So how do you implement a system in which messages are *guaranteed* to be delivered, at least once,
+despite *N* node failures?
 
 One option is to `PUB` messages to multiple `nsqd` (*N* + 1), effectively making it the producer's
-responsibility to replicate data. The problem then becomes: how do you handle the *explicit*
+responsibility to replicate data. The problem then becomes: how do you handle this *explicit*
 duplication of messages?
 
-Well, you de-dupe of course. [Dave Gardner][dave_gardner] (of Hailo fame) has [written
+Well, you de-dupe of course! [Dave Gardner][dave_gardner] (of Hailo fame) has [written
 about][dg_blog] implementing an efficient (probabilistic) method that takes advantage of "reverse
 bloom filters". This strategy is used in production at Hailo.
 
@@ -105,13 +105,13 @@ operations (an operation that will produce the same results if executed once or 
 this case, the duplicated messages no longer have a practical impact. However, this isn't always
 possible and certainly isn't trivial.
 
-It's also important to weigh the fact that both approaches introduce an explicit inefficiency,
-additional operational overhead, and complexity.
+It's also important to note that both approaches introduce an explicit inefficiency, additional
+operational overhead, and complexity.
 
 ## Where are we going?
 
-There's always a tension between keeping NSQ's core simple and focused while still being useful
-for a wide range of use cases.
+There's always a tension between NSQ's core remaining simple and focused while also serving a wide
+range of use cases.
 
 It's also naive to think that after 2 years of experience operating NSQ in production, and
 receiving feedback from other users doing the same, we wouldn't be faced with difficult
