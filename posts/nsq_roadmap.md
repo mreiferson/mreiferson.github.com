@@ -100,10 +100,10 @@ Well, you de-dupe of course. [Dave Gardner][dave_gardner] (of Hailo fame) has [w
 about][dg_blog] implementing an efficient (probabilistic) method that takes advantage of "reverse
 bloom filters". This strategy is used in production at Hailo.
 
-Another approach is to structure your consumers to perform [idempotent][idempotent] operations (an
-operation that will produce the same results if executed once or multiple times). In this case, the
-duplicated messages no longer have a practical impact. However, this isn't always possible and
-certainly isn't trivial.
+An alternative to de-duping is to structure your consumers to perform [idempotent][idempotent]
+operations (an operation that will produce the same results if executed once or multiple times). In
+this case, the duplicated messages no longer have a practical impact. However, this isn't always
+possible and certainly isn't trivial.
 
 It's also important to weigh the fact that both approaches introduce an explicit inefficiency,
 additional operational overhead, and complexity.
