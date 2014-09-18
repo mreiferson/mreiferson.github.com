@@ -1,6 +1,6 @@
 This document aims to outline what we believe to be the future of NSQ and how we're going to get
 there. It's a living document in that we hope it will inspire conversation and debate, ultimately
-producing a robust and clear path forward.  The outline is pretty straightforward:
+producing a robust and clear path forward.  The outline is simple:
 
  1. Where are we now?
   * Discovery
@@ -18,23 +18,21 @@ NSQ was publicly released on October 9th, 2012. There have been ~740 commits ove
 [dozens of client libraries][client_libraries] developed for a diverse set of languages, and many
 companies have chosen to rely on NSQ as a fundamental piece of their infrastructure.
 
-We couldn't be more happy with the community's growth. It's been rewarding to interact with users,
-give talks, and hear about the ways that teams are using NSQ, both with success and failure, and
-where they'd like to see improvement.
+We couldn't be happier with the community's growth. It's been rewarding to interact with users,
+give talks, and hear about the ways that teams are using NSQ and where they'd like to see
+improvement.
 
-Additionally, the landscape has changed in the intervening years since we first started working on
-NSQ. The proliferation of interest in Go, and its natural application as a language for building
-distributed systems, has contributed to an incredible explosion of libraries and projects
-[[1]](#footnote_1) that have vastly improved the tool-chest for application developers.
+Additionally, the landscape has changed in the years since we conceived NSQ. The [explosion of
+interest in Go][google_trends_go] and its natural fit as a language for building distributed
+systems have resulted in a vastly improved toolbox for developers [[1]](#footnote_1).
 
 Given all that, it's important to reflect on the state of things, the set of features and use cases
 that NSQ currently supports, and be able to outline a roadmap for where we want to be. After all,
-without clear direction, we could continue to grind away at bugs and random features but what are
-we actually accomplishing?
+without clear direction, what are we actually accomplishing?
 
-There are three key areas that are most often discussed regarding NSQ core. Discovery, durability,
-and delivery guarantees. What follows in this section is an overview of the pros and cons of the
-current design of each.
+There are three key areas that are most often discussed regarding NSQ core: discovery, durability,
+and delivery guarantees. What follows is an overview of the pros and cons of the current design of
+each.
 
 ### Discovery
 
@@ -225,3 +223,4 @@ This would preserve consumer semantics, making this change effectively transpare
 [coreos]: https://coreos.com/
 [influxdb]: http://influxdb.com/
 [fleet]: https://github.com/coreos/fleet
+[google_trends_go]: https://www.google.com/trends/explore#q=golang
