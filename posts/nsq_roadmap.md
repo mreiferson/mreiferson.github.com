@@ -162,37 +162,59 @@ The implementation is surprisingly straightforward. Despite the eventually consi
 Serf, we can improve propagation and convergence by periodically re-gossiping the existence of
 topics and channels - and use that as an additional form of "liveness".
 
-The challenge is in maintaining the simplicity of bootstrapping a cluster.
+The challenge in this type of distributed system is in providing a simple way to bootstrap the
+cluster. Currently, `nsqd` benefits from the fact that nodes don't coordinate and therefore don't
+require knowledge of a peer's existence. Being able to gossip implies that you're able to
+communicate with *at least* one other node, complicating the current state of things.
+
+[etcd][etcd] took an interesting approach, providing a *hosted* discovery service that your cluster
+can leverage to identify peers.
+
+[Consul][consul] asks you to specify the size of your cluster up-front and will automatically
+trigger the bootstrapping procedure when that threshold is met.
 
 ### Write Ahead Log
 
 A write-ahead log (WAL) is a technique used to provide atomicity and durability. Before applying a
-transaction, you append an entry to a log on non-volatile storage in order to provide a means to
+transaction, an entry is appended to a log on non-volatile storage in order to provide a means to
 recover from failure.
 
-If `nsqd` implemented a WAL, in lieu of its current overflow-based disk persistence, it would
-provide stronger durability and recovery guarantees.
+In case of failure, a node can recover its state by reading the entries in the log and
+(potentially) re-apply them.
 
-Additionally, it is more efficient to maintain a single log per topic, knowing that *all* messages
-are journaled, rather than the current overflow strategy per topic *and* channel.
+If `nsqd` implemented a per topic WAL, in lieu of its current overflow-based disk persistence, it
+would provide stronger durability and recovery guarantees, in addition to being more efficient than
+the current overflow strategy discussed above.
+
+Performance will be a challenge of course, particularly when compared to the (mostly) in-memory
+nature of the current implementation. However, it's worth noting that performance should be more
+*consistent* and not be subject to the degradation that you experience when `nsqd` *overflows* to
+disk.
+
+Based on recent [disk IO benchmarks on EC2][netflix_io_benchmark], it should still be possible to
+saturate a 1gbit link.
 
 #### Compaction
 
-The WAL is not without tradeoffs. One of the biggest challenges is how to compact the log. This is
-a necessary function of a WAL - computers don't have infinite storage and we want to minimize
-recovery time (a direct function of log size).
+Performance isn't the only concern though, one of the biggest challenges is how to *compact* the
+log.
+
+Compaction is a requirement of a WAL - since recovery time is a function of log *size* and
+computers don't have infinite storage, we want to minimize it by performing an occasional
+compaction.
 
 For some context, one of the aspects of NSQ that makes it easy to write consumers is that `nsqd` is
-responsible for maintaining state of which messages have been processed on a given channel. The
-client just subscribes and sets `RDY`, responding to messages as they are processed, while `nsqd`
-keeps track of state in aggregate.
+responsible for maintaining state of which messages have been processed for a given channel. The
+client just subscribes, responding to messages as they are processed, while `nsqd` keeps track of
+aggregate state.
 
 It should be possible to implement a log compaction strategy based on the "slowest channel". If the
 topic is maintaining the log, the channel that is farthest behind (or "slowest") would dictate the
 head of the log (and thus the retention point). You can derive depth as a function of those
-variables.
+variables, too.
 
-This would preserve consumer semantics, making this change effectively transparent.
+This will preserve existing consumer semantics, effectively making this change a transparent
+implementation detail.
 
 ### Replication
 
@@ -231,3 +253,4 @@ it sounds.
 [influxdb]: http://influxdb.com/
 [fleet]: https://github.com/coreos/fleet
 [google_trends_go]: https://www.google.com/trends/explore#q=golang
+[netflix_io_benchmark]: http://techblog.netflix.com/2012/07/benchmarking-high-performance-io-with.html
