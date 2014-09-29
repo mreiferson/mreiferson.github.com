@@ -60,7 +60,7 @@ metadata from all nodes as a cluster scales.
 
 ### Durability
 
-NSQ stores messages in memory and transparently persists to disk above a high-water mark.
+NSQ stores messages in memory and transparently persists them to disk above a high-water mark.
 
 Primarily, this bounds the memory footprint of a given topic/channel during inevitable backlogs (in
 aggregate, bounding an `nsqd`'s RSS). In practice, because Go is a garbage collected language and
@@ -89,7 +89,7 @@ Transactions][lbdt] by guaranteeing that messages are delivered *at least once*.
 However, it leaves it up to the user to protect against node failure. For example, by relying on a
 single `nsqd` you risk losing messages stored in memory if that node were to fail.
 
-So how do you implement a system in which messages are *guaranteed* to be delivered, at least once,
+So how do you implement a system in which messages are *guaranteed* to be delivered (at least once)
 despite *N* node failures?
 
 One option is to `PUB` messages to multiple `nsqd` (*N* + 1), effectively making it the producer's
@@ -102,8 +102,8 @@ bloom filters". This strategy is used in production at Hailo.
 
 An alternative to de-duping is to structure your consumers to perform [idempotent][idempotent]
 operations (an operation that will produce the same results if executed once or multiple times). In
-this case, the duplicated messages no longer have a practical impact. However, this isn't always
-possible and certainly isn't trivial.
+this case, the duplicated messages no longer have a practical impact. Unfortunately, this isn't
+trivial and oftentimes impractical.
 
 It's also important to note that both approaches introduce an explicit inefficiency, additional
 operational overhead, and complexity.
@@ -176,13 +176,13 @@ trigger the bootstrapping procedure when that threshold is met.
 ### Write Ahead Log
 
 A write-ahead log (WAL) is a technique used to provide atomicity and durability. Before applying a
-transaction, an entry is appended to a log on non-volatile storage in order to provide a means to
-recover from failure.
+transaction, an entry is appended to a log on stable storage in order to provide a means to recover
+from failure.
 
-In case of failure, a node can recover its state by reading the entries in the log and
-(potentially) re-apply them.
+In case of failure, a node can recover its state by reading the entries in the log and re-applying
+them, if necessary.
 
-If `nsqd` implemented a per topic WAL, in lieu of its current overflow-based disk persistence, it
+If `nsqd` implemented a per-topic WAL, in lieu of its current overflow-based disk persistence, it
 would provide stronger durability and recovery guarantees, in addition to being more efficient than
 the current overflow strategy discussed above.
 
@@ -199,9 +199,9 @@ saturate a 1gbit link.
 Performance isn't the only concern though, one of the biggest challenges is how to *compact* the
 log.
 
-Compaction is a requirement of a WAL - since recovery time is a function of log *size* and
-computers don't have infinite storage, we want to minimize it by performing an occasional
-compaction.
+Compaction is a requirement of a WAL because otherwise it would grow unbounded. Since recovery time
+is a function of log size and computers don't have infinite storage, we want to minimize it by
+performing an occasional compaction.
 
 For some context, one of the aspects of NSQ that makes it easy to write consumers is that `nsqd` is
 responsible for maintaining state of which messages have been processed for a given channel. The
@@ -221,8 +221,22 @@ implementation detail.
 The final piece of the puzzle is to provide a stronger built-in guarantee around message delivery
 in the face of node failure.
 
-The solution boils down to replicating message data to peers. Unfortunately, this isn't as easy as
-it sounds.
+Ultimately, the solution boils down to replicating the WAL to peers.
+
+Let's assume for a second that we had a method to perform this task in a consistent manner (i.e.
+the peers in this "replication group" *agree* on the contents and state of the log). What *other*
+challenges would we need to overcome?
+
+#### Who's the Leader?
+
+In the current model, each `nsqd` participating in a cluster is a "**leader**" - a node that
+accepts messages from producers and delivers them to consumers.
+
+In the proposed model, some `nsqd` would be responsible for replicating data from a leader while
+standing-by until it was their turn to lead, in essence a "**follower**".
+
+A consumer typically connects to all `nsqd` that contain the topic of interest but, in this
+dual-role topology, it should only connect to the *leaders* of said topic.
 
 ----
 
