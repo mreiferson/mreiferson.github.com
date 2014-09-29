@@ -199,9 +199,8 @@ saturate a 1gbit link.
 Performance isn't the only concern though, one of the biggest challenges is how to *compact* the
 log.
 
-Compaction is a requirement of a WAL because otherwise it would grow unbounded. Since recovery time
-is a function of log size and computers don't have infinite storage, we want to minimize it by
-performing an occasional compaction.
+Since recovery time is a function of log size and computers don't have infinite storage, we want
+to minimize it by performing an occasional compaction.
 
 For some context, one of the aspects of NSQ that makes it easy to write consumers is that `nsqd` is
 responsible for maintaining state of which messages have been processed for a given channel. The
