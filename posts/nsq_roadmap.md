@@ -257,12 +257,12 @@ Without diving into Raft details, during a partition it is possible (even expect
 with different terms can run concurrently (the leader for the previous term on the minority side of
 the partition and the leader with the current term on the majority).
 
-What this means for NSQ is that while connected to a leader that's been partitioned from it's
-followers, until it realizes that it must step down (heartbeat timeout), it will continue to
-deliver messages to consumers.
+This means that a *partitioned* leader will continue to deliver messages to consumers until it
+realizes that it must step down (heartbeat timeout).
 
-Fortunately, we only guarantee *at least once* delivery - it is perfectly acceptable to duplicate
-messages during this brief window.
+Fortunately, since we only guarantee *at least once* delivery, we don't need to explicitly handle
+this edge case. It is perfectly acceptable to duplicate messages during this brief window, it just
+needs to be appropriately documented.
 
 ----
 
