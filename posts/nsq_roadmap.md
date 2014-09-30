@@ -226,16 +226,34 @@ Let's assume for a second that we had a method to perform this task in a consist
 the peers in this "replication group" *agree* on the contents and state of the log). What *other*
 challenges would we need to overcome?
 
-#### Who's the Leader?
+#### Follow the Leader
 
 In the current model, each `nsqd` participating in a cluster is a "**leader**" - a node that
 accepts messages from producers and delivers them to consumers.
 
-In the proposed model, some `nsqd` would be responsible for replicating data from a leader while
-standing-by until it was their turn to lead, in essence a "**follower**".
+In the proposed model, some `nsqd` would instead be responsible for replicating data *from* a
+leader while standing-by until it was their turn to lead, in essence a "**follower**".
 
-A consumer typically connects to all `nsqd` that contain the topic of interest but, in this
-dual-role topology, it should only connect to the *leaders* of said topic.
+In this dual-role topology a consumer should only connect to *leaders* of a topic, rather than
+all `nsqd` like they would in the current model.
+
+Herein lies the problem. Since leadership can and will change, it needs to be propagated via
+gossip. But, given the eventual consistent nature of the gossip protocol, if a consumer connects to
+a *follower* it needs to be *redirected* to the leader and the connection closed.
+
+#### Network Partitions
+
+Without diving into Raft details, during a partition, it is possible (even expected) that leaders
+with different terms can run concurrently (the leader for the previous term on the minority side of
+the partition and the leader with the current term on the majority).
+
+What this means for NSQ is that while connected to a leader that's been partitioned from it's
+followers, until it realizes that it must step down (heartbeat timeout), it will continue to 
+deliver messages to consumers.
+
+Fortunately, we only guarantee *at least once* delivery - it is perfectly acceptable to duplicate
+messages during this brief window.
+
 
 ----
 
