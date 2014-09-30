@@ -220,18 +220,17 @@ implementation detail.
 The final piece of the puzzle is to provide a stronger built-in guarantee around message delivery
 in the face of node failure.
 
-Ultimately, the solution boils down to replicating the WAL to peers.
-
 Given that we're maintaining a WAL, we want a high performance protocol such that peers in a
 "replication group" *agree* on the contents and state of the log, i.e. they're consistent.
 
-Fortunately, [Ben Johnson][ben_twitter] has been working on a "streaming Raft" implementation
-designed for high-performance applications. It achieves this by de-coupling heartbeats from log
-replication while eliminating the overhead of individual RPC requests in favor of a persistent
-stream of data.
+Fortunately, [Ben Johnson][ben_twitter] has been working on an implementation of Raft
+[[2]](#footnote_2) designed for high-performance applications called "Streaming Raft". In short, it
+significantly improves throughput by de-coupling heartbeats from log replication and eliminating
+the overhead of individual RPC requests in favor of a persistent connection over which log data is
+streamed.
 
-If only it were just a matter of "spraying some Raft on it"! There are a few details that are
-important to highlight, namely leadership changes and network partitions:
+As is often the case there are tradeoffs. A few of which are important to highlight, namely
+leadership changes and network partitions:
 
 #### Follow the Leader
 
@@ -244,9 +243,13 @@ leader while standing-by until it was their turn to lead, in essence a "**follow
 In this dual-role topology a consumer should only connect to *leaders* of a topic, rather than
 all `nsqd` like they would in the current model.
 
-Herein lies the problem. Since leadership can and will change, it needs to be propagated via
-gossip. But, given the eventually consistent nature of the gossip protocol, if a consumer connects
-to a *follower* it needs to be *redirected* to the leader (and the connection closed).
+Therein lies the problem. Since leadership can and will change, it needs to be propagated via
+gossip. But, given the eventually consistent nature of the gossip protocol, if a consumer
+inadvertently connects to a *follower* it needs to be *redirected* to the leader (and the
+connection closed).
+
+This redirection allows newer client libraries to handle this gracefully while forcibly closing the
+connection provides backwards compatibility for older client libraries.
 
 #### Network Partitions
 
@@ -267,6 +270,10 @@ messages during this brief window.
 [BoltDB][boltdb], [InfluxDB][influxdb], [Fleet][fleet], [Cayley][cayley],
 [CockroachDB][cockroachdb], [SkyDNS][skydns], [Docker][docker], [Kubernetes][kubernetes],
 [Flynn][flynn], [CoreOS][coreos], etc.
+
+2. <a name="footnote_2"></a>If you're interested in learning about
+Raft it's worth reading the [original paper][raft_paper] or visiting [The Secret Lives of Data:
+Raft][slod_raft].
 
 [client_libraries]: http://nsq.io/clients/client_libraries.html
 [dave_gardner]: https://twitter.com/davegardnerisme
@@ -292,3 +299,5 @@ messages during this brief window.
 [google_trends_go]: https://www.google.com/trends/explore#q=golang
 [netflix_io_benchmark]: http://techblog.netflix.com/2012/07/benchmarking-high-performance-io-with.html
 [ben_twitter]: https://twitter.com/benbjohnson
+[slod_raft]: http://thesecretlivesofdata.com/raft/
+[raft_paper]: http://ramcloud.stanford.edu/raft.pdf
