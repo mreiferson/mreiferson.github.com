@@ -196,24 +196,30 @@ saturate a 1gbit link.
 
 #### Compaction
 
-Performance isn't the only concern though, one of the biggest challenges is how to *compact* the
-log.
+Raw performance isn't the only concern though, one of the biggest challenges is how to *compact*
+the log. Since recovery time is a function of log size we want to minimize it by performing an
+occasional compaction.
 
-Since recovery time is a function of log size and computers don't have infinite storage, we want
-to minimize it by performing an occasional compaction.
-
-For some context, one of the aspects of NSQ that makes it easy to write consumers is that `nsqd` is
-responsible for maintaining state of which messages have been processed for a given channel. The
-client just subscribes, responding to messages as they are processed, while `nsqd` keeps track of
+For some context, NSQ makes it easy to write consumers because they're stateless - `nsqd` is
+responsible for the accounting of messages that have been processed for a given channel. The client
+just subscribes, responding to messages as they are processed, while `nsqd` keeps track of
 aggregate state.
 
-It should be possible to implement a log compaction strategy based on the "slowest channel". If the
-topic is maintaining the log, the channel that is farthest behind (or "slowest") would dictate the
-head of the log (and thus the retention point). You can derive depth as a function of those
-variables, too.
+It is possible to implement a log compaction strategy based on the "slowest channel". Specifically,
+as messages are published, the topic simply appends entries to the log with monotonically
+increasing IDs. Each channel maintains a data structure that efficiently stores contiguous ranges
+of unprocessed message IDs. The depth of the channel is the cardinality of that set.
 
-This will preserve existing consumer semantics, effectively making this change a transparent
-implementation detail.
+The compaction process will periodically scan the channels for a topic to determine the channel
+that is "slowest", represented by the channel with the lowest outstanding ID. This would dictate
+the head of the log (and thus the retention point).
+
+Finally, in order to continue providing message attempts (part the protocol's message format), the
+channel must also maintain a counter for any *unprocessed* message that has been re-queued *at
+least once*.
+
+This preserves the semantics of consumers - they will remain stateless, effectively making this
+change completely transparent.
 
 ### Replication
 
